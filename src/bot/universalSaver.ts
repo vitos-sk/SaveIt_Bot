@@ -60,7 +60,7 @@ export async function saveIncomingUniversal(ctx: Context) {
     return;
   }
 
-  // Text / Links
+  // Text / Link
   const text: string = message?.text || message?.caption || "";
   const urls = extractUrlsFromMessage(message);
   if (urls.length > 0) {
