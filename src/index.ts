@@ -155,7 +155,10 @@ if (process.env.WEBHOOK_URL) {
         await setupBotUi();
         console.log("✅ Команды и Menu Button настроены!");
       } catch (error: any) {
-        console.log("⚠️ Не удалось настроить команды/Menu Button:", error?.message ?? error);
+        console.log(
+          "⚠️ Не удалось настроить команды/Menu Button:",
+          error?.message ?? error
+        );
       }
     });
 } else {
@@ -170,7 +173,10 @@ if (process.env.WEBHOOK_URL) {
         await setupBotUi();
         console.log("✅ Команды и Menu Button настроены!");
       } catch (error: any) {
-        console.log("⚠️ Не удалось настроить команды/Menu Button:", error?.message ?? error);
+        console.log(
+          "⚠️ Не удалось настроить команды/Menu Button:",
+          error?.message ?? error
+        );
       }
     })
     .catch((error) => {
