@@ -1,6 +1,7 @@
 import { Telegraf } from "telegraf";
 import dotenv from "dotenv";
 import { handleStart, handleSave, handleHelp, handleLinks } from "./bot/commands";
+import { getUserByTelegramId } from "./models/User";
 import {
   handleCategorySelection,
   handleSkipTitle,
@@ -28,6 +29,28 @@ if (!BOT_TOKEN) {
 
 const bot = new Telegraf(BOT_TOKEN);
 console.log("✅ Telegraf инициализирован");
+
+// Автоприветствие: Telegram не даёт написать "просто при открытии чата",
+// но мы можем отправить приветствие при первом любом сообщении пользователя.
+bot.use(async (ctx: any, next) => {
+  try {
+    if (!ctx?.from) return next();
+    if (!ctx?.chat || ctx.chat.type !== "private") return next();
+    if (ctx.updateType !== "message") return next();
+
+    const text = ctx.message?.text;
+    if (typeof text === "string" && text.startsWith("/start")) return next();
+
+    const existingUser = await getUserByTelegramId(ctx.from.id);
+    if (!existingUser || !existingUser.welcome_sent_at) {
+      await handleStart(ctx);
+    }
+  } catch (e) {
+    console.error("⚠️ Ошибка автоприветствия:", e);
+  }
+
+  return next();
+});
 
 // Команды (обрабатываются первыми)
 bot.command("start", async (ctx: any) => {

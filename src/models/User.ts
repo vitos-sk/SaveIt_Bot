@@ -6,6 +6,7 @@ export interface User {
   username?: string;
   first_name?: string;
   created_at: number;
+  welcome_sent_at?: number;
 }
 
 export async function createUser(
@@ -15,15 +16,15 @@ export async function createUser(
 ): Promise<User> {
   // Проверяем, существует ли пользователь
   const existingUser = await getUserByTelegramId(telegramId);
-  
+
   if (existingUser) {
     // Обновляем существующего пользователя
     const updates: any = {};
     if (username !== undefined) updates.username = username;
     if (firstName !== undefined) updates.first_name = firstName;
-    
+
     await db.ref(`users/${existingUser.id}`).update(updates);
-    
+
     const snapshot = await db.ref(`users/${existingUser.id}`).once("value");
     return { id: existingUser.id, ...snapshot.val() } as User;
   }
@@ -36,18 +37,20 @@ export async function createUser(
     first_name: firstName,
     created_at: Date.now(),
   };
-  
+
   await userRef.set(userData);
   const snapshot = await userRef.once("value");
   return { id: userRef.key!, ...snapshot.val() } as User;
 }
 
-export async function getUserByTelegramId(
-  telegramId: number
-): Promise<User | null> {
+export async function markUserWelcomed(userId: string): Promise<void> {
+  await db.ref(`users/${userId}`).update({ welcome_sent_at: Date.now() });
+}
+
+export async function getUserByTelegramId(telegramId: number): Promise<User | null> {
   const snapshot = await db.ref("users").once("value");
   const users = snapshot.val();
-  
+
   if (!users) {
     return null;
   }
