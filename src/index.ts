@@ -1,6 +1,6 @@
 import { Telegraf } from "telegraf";
 import dotenv from "dotenv";
-import { handleSave, handleHelp, handleLinks } from "./bot/commands";
+import { handleStart, handleSave, handleHelp, handleLinks } from "./bot/commands";
 import {
   handleCategorySelection,
   handleSkipTitle,
@@ -33,7 +33,7 @@ console.log("✅ Telegraf инициализирован");
 bot.command("start", async (ctx: any) => {
   const { cancelWaitingTitle } = await import("./bot/linkHandler");
   if (ctx.from) cancelWaitingTitle(ctx.from.id);
-  // await handleStart(ctx);
+  await handleStart(ctx);
 });
 
 bot.command("help", async (ctx: any) => {
