@@ -31,18 +31,31 @@ console.log("✅ Telegraf инициализирован");
 
 async function setupBotUi() {
   // Команды бота (видны в меню команд)
-  await bot.telegram.setMyCommands([
+  const commands = [
     { command: "menu", description: "📋 Главное меню" },
     { command: "start", description: "🚀 Начать работу" },
     { command: "links", description: "🔗 Мои ссылки" },
     { command: "help", description: "❓ Справка" },
-  ]);
+  ] as const;
+
+  // Default scope
+  await bot.telegram.setMyCommands(commands);
+  // Explicitly set for private chats (some clients behave better with this)
+  await bot.telegram.setMyCommands(commands, { scope: { type: "all_private_chats" } });
 
   // Кнопка меню в нижнем баре (возле инпута)
   // При нажатии пользователь увидит список команд.
-  await bot.telegram.setChatMenuButton({
-    menuButton: { type: "commands" },
-  });
+  await bot.telegram.setChatMenuButton({ menuButton: { type: "commands" } });
+
+  // Debug logs (visible in Railway logs)
+  try {
+    const btn = await bot.telegram.getChatMenuButton();
+    const cmds = await bot.telegram.getMyCommands();
+    console.log("ℹ️ Default menu button:", JSON.stringify(btn));
+    console.log("ℹ️ Default commands:", JSON.stringify(cmds));
+  } catch (e: any) {
+    console.log("⚠️ Не удалось прочитать menu/commands:", e?.message ?? e);
+  }
 }
 
 // Команды (обрабатываются первыми)
@@ -50,6 +63,26 @@ bot.command("start", async (ctx: any) => {
   const { cancelWaitingTitle } = await import("./bot/linkHandler");
   if (ctx.from) cancelWaitingTitle(ctx.from.id);
   await handleStart(ctx);
+
+  // Ensure menu button is set for THIS private chat specifically
+  try {
+    if (ctx.chat?.type === "private") {
+      await ctx.setChatMenuButton({ type: "commands" });
+      await bot.telegram.setMyCommands(
+        [
+          { command: "menu", description: "📋 Главное меню" },
+          { command: "start", description: "🚀 Начать работу" },
+          { command: "links", description: "🔗 Мои ссылки" },
+          { command: "help", description: "❓ Справка" },
+        ],
+        { scope: { type: "chat", chat_id: ctx.chat.id } }
+      );
+      const btn = await bot.telegram.getChatMenuButton({ chatId: ctx.chat.id });
+      console.log("ℹ️ Chat menu button:", ctx.chat.id, JSON.stringify(btn));
+    }
+  } catch (e: any) {
+    console.log("⚠️ Не удалось настроить menu button для чата:", e?.message ?? e);
+  }
 });
 
 bot.command("help", async (ctx: any) => {
