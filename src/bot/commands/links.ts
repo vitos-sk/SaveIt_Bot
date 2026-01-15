@@ -7,7 +7,7 @@ export async function handleLinks(ctx: Context) {
 
   const items = await getSavedItems(user.id);
   if (items.length === 0) {
-    await ctx.reply("У вас пока нет сохранённых материалов.");
+    await ctx.reply("У вас пока нет сохранённых материалов. ");
     return;
   }
 
