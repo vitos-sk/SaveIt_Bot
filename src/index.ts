@@ -1,6 +1,7 @@
 import { Telegraf } from "telegraf";
 import dotenv from "dotenv";
 import { handleStart, handleSave, handleHelp, handleLinks } from "./bot/commands";
+import { sendWelcomePhotoOnly } from "./bot/commands/start";
 import { getUserByTelegramId } from "./models/User";
 import {
   handleCategorySelection,
@@ -43,7 +44,7 @@ bot.use(async (ctx: any, next) => {
 
     const existingUser = await getUserByTelegramId(ctx.from.id);
     if (!existingUser || !existingUser.welcome_sent_at) {
-      await handleStart(ctx);
+      await sendWelcomePhotoOnly(ctx);
     }
   } catch (e) {
     console.error("⚠️ Ошибка автоприветствия:", e);
