@@ -6,7 +6,6 @@ export interface User {
   username?: string;
   first_name?: string;
   created_at: number;
-  welcome_sent_at?: number;
 }
 
 export async function createUser(
@@ -41,10 +40,6 @@ export async function createUser(
   await userRef.set(userData);
   const snapshot = await userRef.once("value");
   return { id: userRef.key!, ...snapshot.val() } as User;
-}
-
-export async function markUserWelcomed(userId: string): Promise<void> {
-  await db.ref(`users/${userId}`).update({ welcome_sent_at: Date.now() });
 }
 
 export async function getUserByTelegramId(telegramId: number): Promise<User | null> {
