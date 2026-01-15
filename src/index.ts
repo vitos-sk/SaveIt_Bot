@@ -29,6 +29,22 @@ if (!BOT_TOKEN) {
 const bot = new Telegraf(BOT_TOKEN);
 console.log("✅ Telegraf инициализирован");
 
+async function setupBotUi() {
+  // Команды бота (видны в меню команд)
+  await bot.telegram.setMyCommands([
+    { command: "menu", description: "📋 Главное меню" },
+    { command: "start", description: "🚀 Начать работу" },
+    { command: "links", description: "🔗 Мои ссылки" },
+    { command: "help", description: "❓ Справка" },
+  ]);
+
+  // Кнопка меню в нижнем баре (возле инпута)
+  // При нажатии пользователь увидит список команд.
+  await bot.telegram.setChatMenuButton({
+    menuButton: { type: "commands" },
+  });
+}
+
 // Команды (обрабатываются первыми)
 bot.command("start", async (ctx: any) => {
   const { cancelWaitingTitle } = await import("./bot/linkHandler");
@@ -131,8 +147,16 @@ if (process.env.WEBHOOK_URL) {
         port: Number(PORT),
       },
     })
-    .then(() => {
+    .then(async () => {
       console.log("🤖 Бот запущен через webhook!");
+      console.log("✅ Бот готов к работе!");
+
+      try {
+        await setupBotUi();
+        console.log("✅ Команды и Menu Button настроены!");
+      } catch (error: any) {
+        console.log("⚠️ Не удалось настроить команды/Menu Button:", error?.message ?? error);
+      }
     });
 } else {
   // Для локальной разработки и Railway используем polling
@@ -142,39 +166,11 @@ if (process.env.WEBHOOK_URL) {
       console.log("🤖 Бот запущен через polling!");
       console.log("✅ Бот готов к работе!");
 
-      // Настраиваем Menu Button и команды бота
       try {
-        // Устанавливаем команды бота (они появятся в Menu Button)
-        await bot.telegram.setMyCommands([
-          { command: "menu", description: "📋 Главное меню" },
-          { command: "start", description: "🚀 Начать работу" },
-          { command: "links", description: "🔗 Мои ссылки" },
-          { command: "help", description: "❓ Справка" },
-        ]);
-
-        // Настраиваем Menu Button (кнопка меню в нижнем баре)
-        // При нажатии на эту кнопку пользователь увидит список команд
-        // Команда /menu будет первой в списке
-        try {
-          await bot.telegram.setChatMenuButton({
-            menuButton: {
-              type: "commands",
-            },
-          });
-          console.log("✅ Menu Button настроена!");
-        } catch (error: any) {
-          // Если не удалось установить Menu Button, это не критично
-          console.log(
-            "⚠️ Menu Button не настроена (может быть недоступно для этого бота):",
-            error.message
-          );
-        }
-
-        console.log("✅ Команды бота настроены!");
-        console.log("💡 Кнопка меню появится в нижнем баре чата с ботом");
-        console.log("💡 При нажатии на неё выберите команду /menu для открытия меню");
-      } catch (error) {
-        console.error("⚠️ Ошибка при настройке Menu Button:", error);
+        await setupBotUi();
+        console.log("✅ Команды и Menu Button настроены!");
+      } catch (error: any) {
+        console.log("⚠️ Не удалось настроить команды/Menu Button:", error?.message ?? error);
       }
     })
     .catch((error) => {
