@@ -14,6 +14,8 @@ export async function saveIncomingUniversal(ctx: Context) {
   const user = ctx.from;
   if (!user) return;
 
+  const chatType = (ctx.chat as any)?.type;
+
   // If user is currently picking a title for the previous save — treat next text as title.
   if (hasPendingTitle(user.id)) {
     const message: any = (ctx as any).message;
@@ -69,5 +71,22 @@ export async function saveIncomingUniversal(ctx: Context) {
     return;
   }
 
+  // If user forwarded something (but not from direct) and there is NO link — ask them to copy/send a link.
+  // We only warn in private chats to avoid spamming groups.
+  const isForwarded =
+    !!message?.forward_from_chat ||
+    !!message?.forward_from_message_id ||
+    !!message?.forward_sender_name ||
+    !!message?.is_automatic_forward;
+
+  if (chatType === "private" && isForwarded) {
+    await ctx.reply(
+      "Я не могу надёжно сохранить пересланный пост как ссылку.\n\n" +
+        "Пожалуйста, откройте пост/видео/музыку → «Копировать ссылку» и отправьте мне именно ссылку (t.me/... или https://...)."
+    );
+    return;
+  }
+
+  // Otherwise: treat as a regular text note.
   await askCategory(ctx, user.id, buildTextDraft(text, base, originLinks));
 }
